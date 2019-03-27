@@ -8,9 +8,7 @@ This is written in Py 2.7.
 
 The srt files are generated from the TS files using the following script.
 
-...
-#!/usr/bin/env python
-# coding: utf-8
+```
 
 import os
 path_to_TS = '/usr/local/data/sejacob/HOCKEY_VIDEOS/TS'
@@ -29,7 +27,7 @@ for i, j in zip(list_of_TS_files_abs_path,list_of_Sub_files_abs_path):
 
 for command in commands:
     os.system(command)
-...
+```
 
 INSTALLATION:
 -------------
