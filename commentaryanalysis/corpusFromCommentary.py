@@ -59,7 +59,6 @@ def getCorpusFromCorpusDir(CorpusDir):
 
     return corpus
 
-
 def getCorupsFromCorpusFile(CorpusFile):
 
     CorpusDir,CorpusFile = os.path.split(CorpusFile)
@@ -67,7 +66,6 @@ def getCorupsFromCorpusFile(CorpusFile):
     corpus = PlaintextCorpusReader(CorpusDir,CorpusFile)
 
     return corpus
-
 
 def getCorpusFromSRTDir(SRTDir,CorpusDir):
 
