@@ -77,3 +77,7 @@ def getCorpusFromSRTDir(SRTDir,CorpusDir):
 def getWordsFromCorpus(corpus):
 
     return corpus.words()
+
+def getSentsFromCorups(corpus):
+    return corpus.sents()
+
