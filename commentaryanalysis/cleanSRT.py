@@ -1,6 +1,22 @@
 from datetime import datetime
 import re
+from collections import OrderedDict
 from contractions import CONTRACTION_MAP
+import unicodedata
+
+def remove_control_characters(s):
+    s = unicode(s,'utf-8')
+    return_unicode = "".join(ch for ch in s if unicodedata.category(ch)[0]!="C")
+    return_string = return_unicode.encode('ascii','ignore')
+
+    return return_string
+
+
+def remove_HTML_tags(s):
+    s = s.replace('<font face="Monospace">{\\an7}','')
+    s = s.replace('</font>','')
+    return s
+
 
 def readSRTFile(sub_file):
 
@@ -10,7 +26,11 @@ def readSRTFile(sub_file):
     with open(sub_file) as f:
         lines = f.readlines()
 
+    lines = [remove_control_characters(i) for i in lines]
+    lines = [remove_HTML_tags(i) for i in lines]
     lines = [i.rstrip() for i in lines]
+    lines = [i.lstrip() for i in lines]
+
 
     while lines[0] != '1':
         lines.pop(0)
@@ -113,10 +133,7 @@ def expand_contractions(text, contraction_mapping=CONTRACTION_MAP):
 
 def cleanSRTFile(lines):
 
-
-    time_commentary_dict = {}
-    list_time_indexes = []
-    list_commentary = []
+    time_commentary_dict = OrderedDict()
 
     # time_commentary_dict is a dictionary.
     # It is indexed by a tuple of time between when the commentary has happened.
@@ -159,8 +176,6 @@ def cleanSRTFile(lines):
             last_added_line = line
             line_to_be_added = addLine(line)
             time_commentary_dict[(T1, T2)] = line_to_be_added
-            list_time_indexes.append((T1, T2))
-            list_commentary.append(line_to_be_added)
             lines.pop(0)
             continue
 
@@ -175,8 +190,6 @@ def cleanSRTFile(lines):
                 last_added_line = line
                 line_to_be_added = addLine(line_to_check)
                 time_commentary_dict[(T1, T2)] = line_to_be_added
-                list_time_indexes.append((T1, T2))
-                list_commentary.append(line_to_be_added)
                 lines.pop(0)
                 continue
 
@@ -191,8 +204,6 @@ def cleanSRTFile(lines):
             line_to_be_added = addLine(line_match_brack_stripped)
 
             time_commentary_dict[(T1, T2)] = line_to_be_added
-            list_time_indexes.append((T1, T2))
-            list_commentary.append(line_to_be_added)
 
             lines.pop(0)
             continue
@@ -203,8 +214,7 @@ def cleanSRTFile(lines):
             line_to_be_added = addLine(line)
 
             time_commentary_dict[(T1, T2)] = line_to_be_added
-            list_time_indexes.append((T1, T2))
-            list_commentary.append(line_to_be_added)
+
 
             lines.pop(0)
             continue
@@ -213,8 +223,45 @@ def cleanSRTFile(lines):
             lines.pop(0)
             continue
 
-    return time_commentary_dict, list_time_indexes, list_commentary
+    return time_commentary_dict
 
+
+def order_time_commentary_dict_into_sentences(time_commentary_dict):
+
+    time_commentary_dict_sentences = OrderedDict()
+
+    time_start = None
+    time_end = None
+    sentence_running = ''
+
+    for time, line in time_commentary_dict.iteritems():
+
+        if time_start is None:
+            time_start = time[0]
+
+        line_split = line.split('.')
+
+        for value in line_split[0:-1]:
+            sentence_running += value
+            sentence_running += '.'
+            time_end = time[1]
+            time_commentary_dict_sentences[(time_start, time_end)] = sentence_running
+            sentence_running = ''
+
+        sentence_running = line_split[-1]
+
+        if line_split[-1] == '':
+            time_start = None
+        else:
+            sentence_running += ' '
+
+        if len(line_split) >1 :
+            time_start = time[0]
+
+    if sentence_running.rstrip().lstrip() != '':
+        time_commentary_dict_sentences[time_start, time_end] = sentence_running.rstrip() +'.'
+
+    return time_commentary_dict_sentences
 
 
 def read_and_clean_srt(sub_file):
@@ -226,7 +273,24 @@ def read_and_clean_srt(sub_file):
         Notes: The commentary file is cleaned for ads, commentator names, contractions are expanded and all words
                changed to uppercase for uniformity"""
     lines = readSRTFile(sub_file)
-    time_commentary_dict, list_time_indexes, list_commentary = cleanSRTFile(lines)
+    time_commentary_dict = cleanSRTFile(lines)
 
-    return time_commentary_dict, list_time_indexes, list_commentary
+    return time_commentary_dict
+
+
+def read_and_clean_srt_into_sentences(sub_file):
+    """Arguments: path to the subtitle file
+       Returns: time_commentary_dict: A dictionary indexed by a tuple of time objects. Ex: (T1,T2): COMMENTARY HERE
+                list_time_indexes: A list of time indexes in order of appearance in the SUB FILE
+                list_commentary: A list of commentary strings in order of appearance in the SUB FILE
+
+        Notes: The commentary file is cleaned for ads, commentator names, contractions are expanded and all words
+               changed to uppercase for uniformity"""
+    lines = readSRTFile(sub_file)
+    time_commentary_dict = cleanSRTFile(lines)
+    time_commentary_dict_sentences = order_time_commentary_dict_into_sentences(time_commentary_dict)
+
+    return time_commentary_dict_sentences
+
+
 

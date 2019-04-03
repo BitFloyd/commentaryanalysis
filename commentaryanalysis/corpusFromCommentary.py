@@ -1,5 +1,5 @@
 import os
-from cleanSRT import read_and_clean_srt
+from cleanSRT import read_and_clean_srt_into_sentences
 from nltk.corpus.reader.plaintext import PlaintextCorpusReader
 
 
@@ -48,8 +48,8 @@ def createCorpusFilesFromSRTDir(SRTDir,CorpusDir):
 
     for sub_file, corpus_file in zip(list_abs_SRT_files, list_abs_corpus_files):
 
-        _,_,list_commentary = read_and_clean_srt(sub_file)
-        textFileFromListCommentary(corpus_file, list_commentary)
+        dict_commentary = read_and_clean_srt_into_sentences(sub_file)
+        textFileFromListCommentary(corpus_file, dict_commentary.values())
 
     return True
 

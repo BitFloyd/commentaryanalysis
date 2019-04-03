@@ -7,6 +7,7 @@ def remove_stopwords_from_corpus_words(words):
 
     stop_words = stopwords.words('english')
     stop_words = [i.upper() for i in stop_words]
+    stop_words.append('.')
 
     filtered_words = [word for word in words if word not in stop_words]
 
