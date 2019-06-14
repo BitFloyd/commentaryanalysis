@@ -31,6 +31,8 @@ def readSRTFile(sub_file):
     lines = [i.rstrip() for i in lines]
     lines = [i.lstrip() for i in lines]
 
+    if(len(lines)==0):
+        return lines
 
     while lines[0] != '1':
         lines.pop(0)
